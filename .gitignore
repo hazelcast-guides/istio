@@ -5,6 +5,6 @@
 .ipr
 .iml
 .iws
-/.idea
-
+**/.idea/**/*.xml
+target/
 
