@@ -18,6 +18,7 @@ spec:
           image: hazelcast/hazelcast:3.12.4
           ports:
           - containerPort: 5701
+
 ---
 
 apiVersion: v1

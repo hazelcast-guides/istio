@@ -20,7 +20,7 @@ public class Application {
         Config config = new Config();
         config.getNetworkConfig().getJoin().getMulticastConfig().setEnabled(false);
         config.getNetworkConfig().getJoin().getKubernetesConfig().setEnabled(true);
-        config.getNetworkConfig().getJoin().getKubernetesConfig().setProperty("service-name","hazelcast-embedded");
+        config.getNetworkConfig().getJoin().getKubernetesConfig().setProperty("service-name","hazelcast-embedded-headless");
         return config;
     }
 }

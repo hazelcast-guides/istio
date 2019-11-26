@@ -1,35 +1,42 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: hazelcast-client-server
+  name: hazelcast-client
 spec:
-  serviceName: hazelcast-client-server
+  serviceName: hazelcast-client
   replicas: 3
   selector:
     matchLabels:
-      app: hazelcast-client-server
+      app: hazelcast-client
   template:
     metadata:
       labels:
-        app: hazelcast-client-server
+        app: hazelcast-client
     spec:
       containers:
-        - name: hazelcast-client-server
-          image: mesut/hazelcast-springboot-client-server:1.0
+        - name: hazelcast-client
+          image: mesut/hazelcast-springboot-client:1.0
           imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 5701
+          env:
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+
 ---
 
 apiVersion: v1
 kind: Service
 metadata:
-  name: hazelcast-client-server
+  name: springboot-service
 spec:
-  type: ClusterIP
-  clusterIP: None
+  type: LoadBalancer
   selector:
-    app: hazelcast-client-server
+    app: hazelcast-client
   ports:
-    - name: tcp-hazelcast
-      port: 5701
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+
