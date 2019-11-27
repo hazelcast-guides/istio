@@ -16,7 +16,7 @@ spec:
       containers:
         - name: hazelcast-embedded
           image: mesut/hazelcast-springboot-embedded:1.0
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
           - containerPort: 5701
           env:
