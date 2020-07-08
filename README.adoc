@@ -1,0 +1,229 @@
+:github-address: https://github.com/hazelcast-guides/hazelcast-istio.git
+:templates-url: https://raw.githubusercontent.com/hazelcast-guides/adoc-templates/master
+
+= Hazelcast with Istio Service Mesh
+
+include::{templates-url}/link-to-repo.adoc[]
+
+== What You’ll Learn
+
+This guide contains basic Spring Boot microservices with both Hazelcast Embedded and Hazelcast Client-Server. Those microservices demonstarates how Hazelcast can be used in Istio environments. The guide mainly focuses on how to run Hazelcast with Istio. It does not explain what service meshes are and how Istio works.
+
+== Prerequisites
+
+=== Kubernetes Cluster
+In this guide, a Google Kubernetes Engine is used but you can use any Kubernetes cluster you choose.
+----
+$ gcloud container clusters create hazelcast-istio-k8s-cluster --cluster-version=1.14.8-gke.12 --num-nodes=4
+----
+
+=== Istio 1.3.4
+This code sample has been tested against Istio 1.3.4
+
+****
+
+Firstly, let's download Istio and configure the path for `istioctl`:
+----
+$ curl -L https://git.io/getLatestIstio | ISTIO_VERSION=1.3.4 sh -
+$ export PATH=`pwd`/istio-1.3.4/bin:$PATH
+----
+
+Install Istio CRDs:
+----
+$ cd istio-1.3.4
+$ for i in install/kubernetes/helm/istio-init/files/crd*yaml; do kubectl apply -f $i; done
+----
+
+Verify that you have 23 CRDs installed:
+----
+$ kubectl get crds | grep 'istio.io' | wc -l
+23
+----
+
+Install Istio with mTLS enabled:
+----
+$ kubectl apply -f install/kubernetes/istio-demo-auth.yaml
+----
+This installation applies mTLS between Service Proxies.
+
+Verify both istioctl client and control plane has the same version:
+----
+$ istioctl version
+client version: 1.3.4
+control plane version: 1.3.4
+----
+****
+
+=== Code Sample 
+
+Clone this repository and apply RBAC. RBAC is needed by https://github.com/hazelcast/hazelcast-kubernetes[hazelcast-kubernetes] plugin discovery.
+----
+$ git clone https://github.com/hazelcast-guides/hazelcast-istio.git
+$ cd hazelcast-istio
+$ kubectl apply -f rbac.yaml
+----
+
+Istio Sidecar AutoInjection is done by automagically if you label default namespace with `istio-injection`. If you want to implement manual injection with the deployments then you need to use `istioctl kube-inject`.
+----
+$ kubectl label namespace default istio-injection=enabled
+----
+
+== Hazelcast-Istio Code Sample
+
+The business logic in both examples are the same to keep it simple. `put` operation puts a key-value pair to Hazelcast and `get` operation returns the value together with the Kubernetes Pod name. `PodName` is used to show that the value is returned from any Pod inside the Kubernetes cluster to prove the true nature of distributed cache.
+
+=== Hazelcast Embedded
+Switch to embedded code sample directory:
+----
+cd hazelcast-embedded/
+----
+
+Embedded code sample can be built and pushed to your own Docker Hub or some other registry via following command but that is optional:
+----
+$ mvn compile com.google.cloud.tools:jib-maven-plugin:1.8.0:build -Dimage=YOUR-NAME/hazelcast-springboot-embedded:1.0
+----
+
+Instead, pre-built image is located https://hub.docker.com/r/mesut/hazelcast-springboot-embedded[here] and deployments in embedded example use that image.
+
+****
+If you want to build your own image then you can use https://github.com/GoogleContainerTools/jib[jib] to do that but do not forget to update `hazelcast-embedded.yaml` with your own image.
+****
+
+Deploy Hazelcast Embedded Sample:
+----
+$ kubectl apply -f hazelcast-embedded.yaml
+statefulset.apps/hazelcast-embedded created
+service/hazelcast-embedded-headless created
+service/springboot-service created
+----
+
+When you list the services used, you will see that you have two Kubernetes Services: `hazelcast-embedded-headless` and `springboot-service`. `hazelcast-embedded-headless` is used to handle Hazelcast cluster discovery operation so it has no need to have an IP address. `springboot-service` is the loadbalancer that is used to receive http requests and forward it to an underlying Pod to process it.
+----
+$ kubectl get svc
+NAME                          TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
+hazelcast-embedded-headless   ClusterIP   None           <none>        5701/TCP   9s
+kubernetes                    ClusterIP   10.19.240.1    <none>        443/TCP    73m
+springboot-service            ClusterIP   10.19.252.76   <none>        80/TCP     9s
+----
+
+Let's now put a key-value pair into Hazelcast cluster through Spring Boot REST Service and then call get operation in a loop to see the value is returned from different Pods. 
+
+Firstly, let's run a container with `curl` installed and set an environment variable to point to Spring Load Balancer:
+----
+$ kubectl run curl --rm --image=radial/busyboxplus:curl -i --tty
+$ SPRINGBOOT_SERVICE=10.19.252.76
+----
+
+Put a value to the cluster:
+----
+$ curl "${SPRINGBOOT_SERVICE}/put?key=1&value=2"
+{"value":"2","podName":"hazelcast-embedded-2"}
+----
+
+Get the value from cluster in a loop and see that it is retrieved from different Pod names:
+----
+$ while true; do curl "${SPRINGBOOT_SERVICE}/get?key=1"; sleep 2;echo; done
+{"value":"2","podName":"hazelcast-embedded-1"}
+{"value":"2","podName":"hazelcast-embedded-0"}
+...
+----
+
+In this sample, you were able to deploy a Spring Boot based microservice with Hazelcast Embedded in Istio Environment. Let's clean up deployments with the following command.
+
+----
+kubectl delete -f hazelcast-embedded.yaml
+----
+
+
+=== Hazelcast Client Server
+
+In the previous section, we learnt how to use Hazelcast Embedded with Istio. Let's now focus on Hazelcast Client Server Topology. First of all, switch to `client-server` folder.
+
+----
+cd ../hazelcast-client-server
+----
+
+Client-Server code sample can be built and pushed to your own Docker Hub or some other registry via following command but that is optional. 
+----
+mvn compile com.google.cloud.tools:jib-maven-plugin:1.8.0:build -Dimage=YOUR-NAME/hazelcast-springboot-client:1.0
+----
+
+Instead, pre-built image is located https://hub.docker.com/r/mesut/hazelcast-springboot-client[here] and deployments in client-server example use that image.
+
+****
+If you want to build your own image then you can use https://github.com/GoogleContainerTools/jib[jib] to do that but do not forget to update `hazelcast-springboot-client.yaml` with your own image.
+****
+
+Deploy Hazelcast Cluster:
+----
+kubectl apply -f hazelcast-cluster.yaml
+----
+
+You can see that 3 member cluster has been initiated with 3 pods. `2/2` in `READY` column means that there are 2 containers running in each Pod. One is Hazelcast member and the other is Envoy Proxy.
+
+----
+$ kubectl get pods
+NAME                  READY   STATUS    RESTARTS   AGE
+hazelcast-cluster-0   2/2     Running   0          60s
+hazelcast-cluster-1   2/2     Running   0          44s
+hazelcast-cluster-2   2/2     Running   0          27s
+----
+
+Deploy Spring Boot Application with Hazelcast Client:
+----
+kubectl apply -f hazelcast-springboot-client.yaml
+----
+
+Check logs and see that Spring Boot service is connected to the cluster:
+----
+$ kubectl logs hazelcast-client-0 hazelcast-client -f
+...
+Members [3] {
+	Member [10.16.2.14]:5701 - 51274b4d-dc7f-4647-9ceb-c32bfc922c95
+	Member [10.16.1.15]:5701 - 465cfefa-9b26-472d-a204-addf3b82d40a
+	Member [10.16.2.15]:5701 - 67fdf27a-e7b7-4ed7-adf1-c00f785d2325
+}
+...
+----
+
+
+Let's now run a container with curl installed and set an environment variable to point to Spring Load Balancer.
+
+First, find the IP of Spring Boot Service:
+----
+$ kubectl get svc springboot-service
+NAME                 TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+springboot-service   ClusterIP   10.19.250.127   <none>        80/TCP    3m29s
+----
+
+Launch a `curl` container inside Kubernetes cluster and set service IP as environment variable:
+----
+$ kubectl run curl --rm --image=radial/busyboxplus:curl -i --tty
+$ SPRINGBOOT_SERVICE=10.19.250.127
+----
+
+Put a value to the cluster:
+----
+$ curl "${SPRINGBOOT_SERVICE}/put?key=1&value=2"
+{"value":"2","podName":"hazelcast-embedded-2"}
+----
+
+Get the value from cluster in a loop and see that it is retrieved from different Pod names:
+----
+$ while true; do curl "${SPRINGBOOT_SERVICE}/get?key=1"; sleep 2;echo; done
+{"value":"2","podName":"hazelcast-embedded-1"}
+{"value":"2","podName":"hazelcast-embedded-0"}
+...
+----
+
+In this sample, you were able to deploy a Spring Boot based microservice with Hazelcast client-server topology in Istio Environment. 
+
+Clean up deployments with the following command:
+----
+$ kubectl delete -f hazelcast-springboot-client.yaml
+$ kubectl delete -f hazelcast-cluster.yaml
+----
+
+== Summary
+
+This guide demonstrates how to use Hazelcast Embedded and Client-Server topology in mTLS enabled Istio environment with Automatic Sidecar Injection. Hazelcast continuously tries to support cloud native technologies and verifies those environments as they evolve. 
