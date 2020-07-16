@@ -227,3 +227,5 @@ $ kubectl delete -f hazelcast-cluster.yaml
 == Summary
 
 This guide demonstrates how to use Hazelcast Embedded and Client-Server topology in mTLS enabled Istio environment with Automatic Sidecar Injection. Hazelcast continuously tries to support cloud native technologies and verifies those environments as they evolve. 
+
+
