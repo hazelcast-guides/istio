@@ -1,3 +1,3 @@
-name: hazelcast-istio
+name: istio-embedded
 title: Hazelcast with Istio Service Mesh
 version: master
