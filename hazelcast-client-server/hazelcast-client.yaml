@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: hazelcast-client
-          image: mesut/hazelcast-springboot-client:1.0
+          image: hazelcastguides/istio-client:1.0
           imagePullPolicy: Always
           ports:
           - containerPort: 5701

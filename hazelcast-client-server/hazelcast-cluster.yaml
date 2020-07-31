@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
         - name: hazelcast-cluster
-          image: hazelcast/hazelcast:3.12.4
+          image: hazelcast/hazelcast:4.0.2
           ports:
           - containerPort: 5701
           volumeMounts:
@@ -40,7 +40,7 @@ spec:
               mountPath: /data/hazelcast
           env:
             - name: JAVA_OPTS
-              value: "-Dhazelcast.rest.enabled=true -Dhazelcast.config=/data/hazelcast/hazelcast.yaml"
+              value: "-Dhazelcast.config=/data/hazelcast/hazelcast.yaml"
       volumes:
         - name: hazelcast-storage
           configMap:
