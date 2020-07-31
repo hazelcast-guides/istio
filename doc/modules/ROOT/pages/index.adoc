@@ -1,4 +1,4 @@
-:github-address: https://github.com/hazelcast-guides/istio-embedded.git
+:github-address: https://github.com/hazelcast-guides/istio.git
 :templates-url: templates:ROOT:page$/
 
 = Hazelcast with Istio Service Mesh
