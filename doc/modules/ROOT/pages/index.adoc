@@ -7,7 +7,7 @@ include::{templates-url}/link-to-repo.adoc[]
 
 == What You’ll Learn
 
-This guide contains basic Spring Boot microservices with both Hazelcast Embedded and Hazelcast Client-Server. Those microservices demonstarates how Hazelcast can be used in the Istio environments. The guide mainly focuses on how to run Hazelcast with Istio. It does not explain what service meshes are and how Istio works.
+This guide contains basic Spring Boot microservices with both Hazelcast Embedded and Hazelcast Client-Server. Those microservices demonstrates how Hazelcast can be used in the Istio environments. The guide mainly focuses on how to run Hazelcast with Istio. It does not explain what service meshes are and how Istio works.
 
 == Prerequisites
 
