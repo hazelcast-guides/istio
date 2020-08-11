@@ -1,1 +1,1 @@
-See the guide [here](https://hazelcast-guides.github.io/guides-site/istio/).
+See the guide [here](https://guides.hazelcast.org/istio/).
