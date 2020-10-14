@@ -17,8 +17,8 @@ In this guide, a Google Kubernetes Engine is used but you can use any Kubernetes
 gcloud container clusters create hazelcast-cluster --num-nodes=4
 ----
 
-=== Istio 1.6.6
-This code sample has been tested against Istio 1.6.6
+=== Istio 1.7.3
+This code sample has been tested against Istio 1.7.3
 
 ****
 
@@ -36,9 +36,9 @@ istioctl install --set profile=demo --skip-confirmation
 Verify both istioctl client and control plane has the same version:
 ----
 $ istioctl version
-client version: 1.6.6
-control plane version: 1.6.6
-data plane version: 1.6.6 (3 proxies)
+client version: 1.7.3
+control plane version: 1.7.3
+data plane version: 1.7.3 (2 proxies)
 ----
 ****
 
@@ -46,8 +46,8 @@ data plane version: 1.6.6 (3 proxies)
 
 Clone this repository and apply RBAC. RBAC is needed by https://github.com/hazelcast/hazelcast-kubernetes[hazelcast-kubernetes] plugin discovery.
 ----
-git clone https://github.com/hazelcast-guides/istio-embedded.git
-cd istio-embedded
+git clone https://github.com/hazelcast-guides/istio.git
+cd istio
 kubectl apply -f rbac.yaml
 ----
 
