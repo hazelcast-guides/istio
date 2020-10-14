@@ -51,7 +51,7 @@ cd istio-embedded
 kubectl apply -f rbac.yaml
 ----
 
-Istio Sidecar AutoInjection is done by automagically if you label default namespace with `istio-injection`. If you want to implement manual injection with the deployments then you need to use `istioctl kube-inject`.
+Istio Sidecar AutoInjection is done by automatically if you label default namespace with `istio-injection`. If you want to implement manual injection with the deployments then you need to use `istioctl kube-inject`.
 ----
 kubectl label namespace default istio-injection=enabled
 ----
