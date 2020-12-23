@@ -120,7 +120,7 @@ NAME                 TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
 springboot-service   ClusterIP   10.19.250.127   <none>        80/TCP    3m29s
 ----
 
-Launch a `curl` container inside Kubernetes cluster and set service IP as environment variable:
+Launch a `curl` container inside Kubernetes cluster and set the service IP as an environment variable:
 ----
 kubectl run curl --rm --image=radial/busyboxplus:curl -i --tty
 SPRINGBOOT_SERVICE=10.19.250.127
