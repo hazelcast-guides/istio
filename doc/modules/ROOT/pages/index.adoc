@@ -142,7 +142,7 @@ $ while true; do curl "${SPRINGBOOT_SERVICE}/get?key=1"; sleep 2;echo; done
 
 In this sample, you were able to deploy a Spring Boot based microservice with Hazelcast client-server topology in Istio Environment.
 
-Clean up deployments with the following command:
+Clean up the deployments with the following commands:
 ----
 kubectl delete -f hazelcast-client.yaml
 kubectl delete -f hazelcast-cluster.yaml
@@ -228,4 +228,3 @@ kubectl delete -f hazelcast-embedded.yaml
 == Summary
 
 This guide demonstrates how to use Hazelcast Embedded and Client-Server topology in mTLS enabled Istio environment with Automatic Sidecar Injection. Hazelcast continuously tries to support cloud native technologies and verifies those environments as they evolve.
-
