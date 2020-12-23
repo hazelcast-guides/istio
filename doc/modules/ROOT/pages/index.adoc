@@ -188,7 +188,7 @@ Members {size:3, ver:3} [
 ----
 
 
-When you list the services used, you will see that you have two Kubernetes Services: `hazelcast-embedded-headless` and `springboot-service`. `hazelcast-embedded-headless` is used to handle Hazelcast cluster discovery operation so it has no need to have an IP address. `springboot-service` is the loadbalancer that is used to receive http requests and forward it to an underlying Pod to process it.
+When you list the services used, you will see that you have two Kubernetes Services: `hazelcast-embedded-headless` and `springboot-service`. `hazelcast-embedded-headless` is used to handle Hazelcast cluster discovery operation so it has no need to have an IP address. `springboot-service` is the loadbalancer that is used to receive http requests and forward them to one of the underlying pods to respond.
 ----
 $ kubectl get svc
 NAME                          TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
