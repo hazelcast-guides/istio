@@ -150,7 +150,7 @@ kubectl delete -f hazelcast-cluster.yaml
 
 === Hazelcast Embedded
 
-Switch to embedded code sample directory:
+Switch to the embedded code sample directory:
 ----
 cd hazelcast-embedded
 ----
