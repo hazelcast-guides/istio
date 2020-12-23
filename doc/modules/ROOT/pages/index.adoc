@@ -174,7 +174,7 @@ service/hazelcast-embedded-headless created
 service/springboot-service created
 ----
 
-You can check that the application started and that Hazelcast successfully formed a cluster.
+You can check that the application started and Hazelcast successfully formed a cluster.
 
 ----
 $ kubectl logs pod/hazelcast-embedded-0 hazelcast-embedded
