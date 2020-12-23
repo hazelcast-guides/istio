@@ -7,7 +7,7 @@ include::{templates-url}/link-to-repo.adoc[]
 
 == What You’ll Learn
 
-This guide explains how to use Hazelcast in the Istio environment. You'll learn how to set up Hazelcast cluster and use it with Hazelcast client. Then, you can also see how to deploy an application with embedded Hazelcast.
+This guide explains how to use Hazelcast in the Istio environment. You'll learn how to set up a Hazelcast cluster and connect it with Hazelcast client. Then, you will also see how to deploy an application with embedded Hazelcast.
 
 == Prerequisites
 
@@ -228,5 +228,4 @@ kubectl delete -f hazelcast-embedded.yaml
 == Summary
 
 This guide demonstrates how to use Hazelcast Embedded and Client-Server topology in mTLS enabled Istio environment with Automatic Sidecar Injection. Hazelcast continuously tries to support cloud native technologies and verifies those environments as they evolve.
-
 
