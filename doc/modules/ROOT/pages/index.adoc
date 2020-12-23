@@ -129,14 +129,14 @@ SPRINGBOOT_SERVICE=10.19.250.127
 Put a value to the cluster:
 ----
 $ curl "${SPRINGBOOT_SERVICE}/put?key=1&value=2"
-{"value":"2","podName":"hazelcast-embedded-2"}
+{"value":"2","podName":"hazelcast-client-2"}
 ----
 
 Get the value from cluster in a loop and see that it is retrieved from different Pod names:
 ----
 $ while true; do curl "${SPRINGBOOT_SERVICE}/get?key=1"; sleep 2;echo; done
-{"value":"2","podName":"hazelcast-embedded-1"}
-{"value":"2","podName":"hazelcast-embedded-0"}
+{"value":"2","podName":"hazelcast-client-1"}
+{"value":"2","podName":"hazelcast-client-0"}
 ...
 ----
 
