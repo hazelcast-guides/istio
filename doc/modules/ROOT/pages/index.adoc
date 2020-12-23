@@ -7,7 +7,7 @@ include::{templates-url}/link-to-repo.adoc[]
 
 == What You’ll Learn
 
-This guide contains basic Spring Boot microservices with both Hazelcast Embedded and Hazelcast Client-Server. Those microservices demonstrates how Hazelcast can be used in the Istio environments. The guide mainly focuses on how to run Hazelcast with Istio. It does not explain what service meshes are and how Istio works.
+This guide explains how to use Hazelcast in the Istio environment. You'll learn how to set up Hazelcast cluster and use it with Hazelcast client. Then, you can also see how to deploy an application with embedded Hazelcast.
 
 == Prerequisites
 
@@ -51,7 +51,7 @@ cd istio
 kubectl apply -f rbac.yaml
 ----
 
-Istio Sidecar AutoInjection is done by automatically if you label default namespace with `istio-injection`. If you want to implement manual injection with the deployments then you need to use `istioctl kube-inject`.
+Istio Sidecar AutoInjection is done automatically if you label default namespace with `istio-injection`. If you want to implement manual injection with the deployments then you need to use `istioctl kube-inject`.
 ----
 kubectl label namespace default istio-injection=enabled
 ----
@@ -60,89 +60,12 @@ kubectl label namespace default istio-injection=enabled
 
 The business logic in both examples are the same to keep it simple. `put` operation puts a key-value pair to Hazelcast and `get` operation returns the value together with the Kubernetes Pod name. `PodName` is used to show that the value is returned from any Pod inside the Kubernetes cluster to prove the true nature of distributed cache.
 
-=== Hazelcast Embedded
-Switch to embedded code sample directory:
-----
-cd hazelcast-embedded/
-----
-
-Embedded code sample can be built and pushed to your own Docker Hub or some other registry via following command but that is optional:
-----
-mvn compile com.google.cloud.tools:jib-maven-plugin:1.8.0:build -Dimage=YOUR-NAME/istio-embedded:1.0
-----
-
-Instead, you can use the already pre-built docker image `hazelcastguides/istio-embedded:1.0`.
-
-****
-If you want to build your own image, then do not forget to update `hazelcast-embedded.yaml` with your own image.
-****
-
-Deploy Hazelcast Embedded Sample:
-----
-$ kubectl apply -f hazelcast-embedded.yaml
-statefulset.apps/hazelcast-embedded created
-service/hazelcast-embedded-headless created
-service/springboot-service created
-----
-
-You can check that the application started and that Hazelcast successfully formed a cluster.
-
-----
-$ kubectl logs pod/hazelcast-embedded-0 hazelcast-embedded
-...
-Members {size:3, ver:3} [
-        Member [10.12.1.6]:5701 - 644e6bbf-335a-410b-80ab-0cb648dbc772
-        Member [10.12.2.8]:5701 - 0ab13148-b6bb-477e-970b-0b5c226ed2aa this
-        Member [10.12.3.4]:5701 - 72f56c90-f55e-490c-b3c0-d40fe970557f
-]
-...
-----
-
-
-When you list the services used, you will see that you have two Kubernetes Services: `hazelcast-embedded-headless` and `springboot-service`. `hazelcast-embedded-headless` is used to handle Hazelcast cluster discovery operation so it has no need to have an IP address. `springboot-service` is the loadbalancer that is used to receive http requests and forward it to an underlying Pod to process it.
-----
-$ kubectl get svc
-NAME                          TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
-hazelcast-embedded-headless   ClusterIP   None           <none>        5701/TCP   9s
-kubernetes                    ClusterIP   10.19.240.1    <none>        443/TCP    73m
-springboot-service            ClusterIP   10.19.252.76   <none>        80/TCP     9s
-----
-
-Let's now put a key-value pair into Hazelcast cluster through Spring Boot REST Service and then call get operation in a loop to see the value is returned from different Pods.
-
-Firstly, let's run a container with `curl` installed and set an environment variable to point to Spring Load Balancer:
-----
-kubectl run curl --rm --image=radial/busyboxplus:curl -i --tty
-SPRINGBOOT_SERVICE=10.19.252.76
-----
-
-Put a value to the cluster:
-----
-$ curl "${SPRINGBOOT_SERVICE}/put?key=1&value=2"
-{"value":"2","podName":"hazelcast-embedded-2"}
-----
-
-Get the value from cluster in a loop and see that it is retrieved from different Pod names:
-----
-$ while true; do curl "${SPRINGBOOT_SERVICE}/get?key=1"; sleep 2;echo; done
-{"value":"2","podName":"hazelcast-embedded-1"}
-{"value":"2","podName":"hazelcast-embedded-0"}
-...
-----
-
-In this sample, you were able to deploy a Spring Boot based microservice with Hazelcast Embedded in Istio Environment. Let's clean up deployments with the following command.
-
-----
-kubectl delete -f hazelcast-embedded.yaml
-----
-
-
 === Hazelcast Client Server
 
-In the previous section, we learnt how to use Hazelcast Embedded with Istio. Let's now focus on Hazelcast Client Server Topology. First of all, switch to `client-server` folder.
+Let's first switch to the client-server directory.
 
 ----
-cd ../hazelcast-client-server
+cd hazelcast-client-server
 ----
 
 Client-Server code sample can be built and pushed to your own Docker Hub or some other registry via following command but that is optional.
@@ -223,6 +146,83 @@ Clean up deployments with the following command:
 ----
 kubectl delete -f hazelcast-client.yaml
 kubectl delete -f hazelcast-cluster.yaml
+----
+
+=== Hazelcast Embedded
+
+Switch to embedded code sample directory:
+----
+cd hazelcast-embedded
+----
+
+Embedded code sample can be built and pushed to your own Docker Hub or some other registry via following command but that is optional:
+----
+mvn compile com.google.cloud.tools:jib-maven-plugin:1.8.0:build -Dimage=YOUR-NAME/istio-embedded:1.0
+----
+
+Instead, you can use the already pre-built docker image `hazelcastguides/istio-embedded:1.0`.
+
+****
+If you want to build your own image, then do not forget to update `hazelcast-embedded.yaml` with your own image.
+****
+
+Deploy Hazelcast Embedded Sample:
+----
+$ kubectl apply -f hazelcast-embedded.yaml
+statefulset.apps/hazelcast-embedded created
+service/hazelcast-embedded-headless created
+service/springboot-service created
+----
+
+You can check that the application started and that Hazelcast successfully formed a cluster.
+
+----
+$ kubectl logs pod/hazelcast-embedded-0 hazelcast-embedded
+...
+Members {size:3, ver:3} [
+        Member [10.12.1.6]:5701 - 644e6bbf-335a-410b-80ab-0cb648dbc772
+        Member [10.12.2.8]:5701 - 0ab13148-b6bb-477e-970b-0b5c226ed2aa this
+        Member [10.12.3.4]:5701 - 72f56c90-f55e-490c-b3c0-d40fe970557f
+]
+...
+----
+
+
+When you list the services used, you will see that you have two Kubernetes Services: `hazelcast-embedded-headless` and `springboot-service`. `hazelcast-embedded-headless` is used to handle Hazelcast cluster discovery operation so it has no need to have an IP address. `springboot-service` is the loadbalancer that is used to receive http requests and forward it to an underlying Pod to process it.
+----
+$ kubectl get svc
+NAME                          TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
+hazelcast-embedded-headless   ClusterIP   None           <none>        5701/TCP   9s
+kubernetes                    ClusterIP   10.19.240.1    <none>        443/TCP    73m
+springboot-service            ClusterIP   10.19.252.76   <none>        80/TCP     9s
+----
+
+Let's now put a key-value pair into Hazelcast cluster through Spring Boot REST Service and then call get operation in a loop to see the value is returned from different Pods.
+
+Firstly, let's run a container with `curl` installed and set an environment variable to point to Spring Load Balancer:
+----
+kubectl run curl --rm --image=radial/busyboxplus:curl -i --tty
+SPRINGBOOT_SERVICE=10.19.252.76
+----
+
+Put a value to the cluster:
+----
+$ curl "${SPRINGBOOT_SERVICE}/put?key=1&value=2"
+{"value":"2","podName":"hazelcast-embedded-2"}
+----
+
+Get the value from cluster in a loop and see that it is retrieved from different Pod names:
+----
+$ while true; do curl "${SPRINGBOOT_SERVICE}/get?key=1"; sleep 2;echo; done
+{"value":"2","podName":"hazelcast-embedded-1"}
+{"value":"2","podName":"hazelcast-embedded-0"}
+...
+----
+
+In this sample, you were able to deploy a Spring Boot based microservice with Hazelcast Embedded in Istio Environment. Let's clean up deployments with the following command.
+
+----
+kubectl delete -f hazelcast-embedded.yaml
 ----
 
 == Summary
