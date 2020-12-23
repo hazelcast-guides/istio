@@ -219,7 +219,7 @@ $ while true; do curl "${SPRINGBOOT_SERVICE}/get?key=1"; sleep 2;echo; done
 ...
 ----
 
-In this sample, you were able to deploy a Spring Boot based microservice with Hazelcast Embedded in Istio Environment. Let's clean up deployments with the following command.
+In this sample, you were able to deploy a Spring Boot based microservice with Hazelcast Embedded in Istio Environment. Let's clean up the deployments with the following command.
 
 ----
 kubectl delete -f hazelcast-embedded.yaml
