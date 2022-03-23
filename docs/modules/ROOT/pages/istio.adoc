@@ -2,7 +2,7 @@
 :templates-url: templates:ROOT:page$/
 :page-layout: tutorial
 :page-product: cloud
-:page-categories: Caching, Spring Boot, Microservice, Kubernetes
+:page-categories: Caching, Spring Boot, Microservices, Kubernetes
 :page-lang: java
 :page-edition: 
 :page-est-time: 15 mins
