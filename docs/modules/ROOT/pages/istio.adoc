@@ -2,15 +2,15 @@
 :templates-url: templates:ROOT:page$/
 :page-layout: tutorial
 :page-product: imdg
-:page-categories: Caching, Spring Boot, Deployment, Microservices, Kubernetes
+:page-categories: Caching, Spring Boot, Deployment, Microservices, Cloud Native
 :page-lang: java
 :page-edition: 
 :page-est-time: 15 mins
-:description: This tutorial explains how to use Hazelcast in the Istio environment. You'll learn how to set up a Hazelcast cluster and connect it with Hazelcast client. Then, you will also see how to deploy an application with embedded Hazelcast.
-
-== What You’ll Learn
+:description: Use Hazelcast in an Istio environment.
 
 {description}
+
+In this tutorial, you'll learn how to set up a Hazelcast cluster and connect it with Hazelcast client. Then, you will also see how to deploy an application with embedded Hazelcast.
 
 == Before you Begin
 
