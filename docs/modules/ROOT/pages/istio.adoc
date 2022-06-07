@@ -1,62 +1,73 @@
-:github-address: https://github.com/hazelcast-guides/istio.git
-:templates-url: templates:ROOT:page$/
-
 = Hazelcast with Istio Service Mesh
+:templates-url: templates:ROOT:page$/
+:page-layout: tutorial
+:page-product: imdg
+:page-categories: Caching, Spring Boot, Deployment, Microservices, Cloud Native
+:page-lang: java
+:page-edition: 
+:page-est-time: 15 mins
+:description: Use Hazelcast in an Istio environment.
 
-include::{templates-url}/link-to-repo.adoc[]
+{description}
 
-== What You’ll Learn
+In this tutorial, you'll learn how to set up a Hazelcast cluster and connect it with Hazelcast client. Then, you will also see how to deploy an application with embedded Hazelcast.
 
-This guide explains how to use Hazelcast in the Istio environment. You'll learn how to set up a Hazelcast cluster and connect it with Hazelcast client. Then, you will also see how to deploy an application with embedded Hazelcast.
+== Before you Begin
 
-== Prerequisites
+You need the following:
 
-=== Kubernetes Cluster
-In this guide, a Google Kubernetes Engine is used but you can use any Kubernetes cluster you choose.
-----
+- A Kubernetes cluster
++
+This tutorial uses Google Kubernetes Engine but you can use any Kubernetes cluster.
++
+```bash
 gcloud container clusters create hazelcast-cluster --num-nodes=4
-----
+```
 
-=== Istio 1.7.3
+== Install Istio 1.7.3
+
 This code sample has been tested against Istio 1.7.3
 
-****
-
-Firstly, let's download Istio and configure the path for `istioctl`:
-----
+. Download Istio and configure the path for `istioctl`.
++
+```bash
 curl -L https://istio.io/downloadIstio | sh -
 export PATH=`pwd`/`ls | grep istio`/bin:$PATH
-----
+```
 
-Install Istio CRDs:
-----
+. Install Istio CRDs.
++
+```bash
 istioctl install --set profile=demo --skip-confirmation
-----
+```
 
-Verify both istioctl client and control plane has the same version:
-----
-$ istioctl version
+. Make sure that both the `istioctl` client and the control plane have the same version.
++
+```bash
+istioctl version
+```
+
+```
 client version: 1.7.3
 control plane version: 1.7.3
 data plane version: 1.7.3 (2 proxies)
-----
-****
+```
 
-=== Code Sample
+== Run the Code Sample
 
-Clone this repository and apply RBAC. RBAC is needed by https://github.com/hazelcast/hazelcast-kubernetes[hazelcast-kubernetes] plugin discovery.
-----
+Clone this repository and apply RBAC. RBAC is needed by the https://github.com/hazelcast/hazelcast-kubernetes[hazelcast-kubernetes] plugin discovery.
+
+```bash
 git clone https://github.com/hazelcast-guides/istio.git
 cd istio
 kubectl apply -f rbac.yaml
-----
+```
 
-Istio Sidecar AutoInjection is done automatically if you label default namespace with `istio-injection`. If you want to implement manual injection with the deployments then you need to use `istioctl kube-inject`.
-----
+Istio Sidecar AutoInjection is done automatically if you label the default namespace with `istio-injection`. If you want to implement manual injection with the deployments then you need to use `istioctl kube-inject`.
+
+```bash
 kubectl label namespace default istio-injection=enabled
-----
-
-== Hazelcast-Istio Code Sample
+```
 
 The business logic in both examples are the same to keep it simple. `put` operation puts a key-value pair to Hazelcast and `get` operation returns the value together with the Kubernetes Pod name. `PodName` is used to show that the value is returned from any Pod inside the Kubernetes cluster to prove the true nature of distributed cache.
 
@@ -64,25 +75,25 @@ The business logic in both examples are the same to keep it simple. `put` operat
 
 Let's first switch to the client-server directory.
 
-----
+```bash
 cd hazelcast-client-server
-----
+```
 
 Client-Server code sample can be built and pushed to your own Docker Hub or some other registry via following command but that is optional.
-----
+
+```bash
 mvn compile com.google.cloud.tools:jib-maven-plugin:1.8.0:build -Dimage=YOUR-NAME/istio-client:1.0
-----
+```
 
 Instead, you can use the already pre-built docker image `hazelcastguides/istio-client:1.0`.
 
-****
-If you want to build your own image, then do not forget to update `hazelcast-client.yaml` with your own image.
-****
+NOTE: If you want to build your own image, then do not forget to update `hazelcast-client.yaml` with your own image.
 
 Deploy Hazelcast Cluster:
-----
+
+```bash
 kubectl apply -f hazelcast-cluster.yaml
-----
+```
 
 You can see that 3 member cluster has been initiated with 3 pods. `2/2` in `READY` column means that there are 2 containers running in each Pod. One is Hazelcast member and the other is Envoy Proxy.
 
@@ -94,12 +105,14 @@ hazelcast-cluster-1   2/2     Running   0          44s
 hazelcast-cluster-2   2/2     Running   0          27s
 ----
 
-Deploy Spring Boot Application with Hazelcast Client:
+Deploy the Spring Boot application with the Hazelcast client:
+
 ----
 kubectl apply -f hazelcast-client.yaml
 ----
 
-Check logs and see that Spring Boot service is connected to the cluster:
+Check the logs and see that the Spring Boot service is connected to the cluster:
+
 ----
 $ kubectl logs hazelcast-client-0 hazelcast-client
 ...
@@ -111,9 +124,10 @@ Members [3] {
 ...
 ----
 
-Let's now run a container with curl installed and set an environment variable to point to Spring Load Balancer.
+Run a container with cURL installed and set an environment variable to point to the Spring load balancer.
 
 First, find the IP of Spring Boot Service:
+
 ----
 $ kubectl get svc springboot-service
 NAME                 TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
@@ -162,9 +176,8 @@ mvn compile com.google.cloud.tools:jib-maven-plugin:1.8.0:build -Dimage=YOUR-NAM
 
 Instead, you can use the already pre-built docker image `hazelcastguides/istio-embedded:1.0`.
 
-****
-If you want to build your own image, then do not forget to update `hazelcast-embedded.yaml` with your own image.
-****
+
+NOTE: If you want to build your own image, then do not forget to update `hazelcast-embedded.yaml` with your own image.
 
 Deploy Hazelcast Embedded Sample:
 ----
@@ -227,4 +240,4 @@ kubectl delete -f hazelcast-embedded.yaml
 
 == Summary
 
-This guide demonstrates how to use Hazelcast Embedded and Client-Server topology in mTLS enabled Istio environment with Automatic Sidecar Injection. Hazelcast continuously tries to support cloud native technologies and verifies those environments as they evolve.
+This tutorial demonstrates how to use Hazelcast Embedded and client/server topology in an mTLS-enabled Istio environment with Automatic Sidecar Injection. Hazelcast continuously tries to support cloud native technologies and verifies those environments as they evolve.
